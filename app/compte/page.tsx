@@ -45,7 +45,7 @@ export default async function ComptePage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name")
+    .select("full_name, role")
     .eq("id", user.id)
     .single();
 
@@ -81,6 +81,15 @@ export default async function ComptePage() {
             {label}
           </Link>
         ))}
+        {profile?.role === "admin" && (
+          <Link
+            href="/admin"
+            className="flex items-center gap-3 border-b border-neutral-100 py-3.5 text-sm font-medium text-orange"
+          >
+            <Settings size={18} className="text-orange" />
+            Administration
+          </Link>
+        )}
         <SignOutButton />
       </nav>
 

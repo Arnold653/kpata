@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Search, MapPin, Bell, ShoppingCart } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import ProductCard from "@/components/ProductCard";
@@ -35,7 +36,16 @@ export default async function HomePage() {
       {/* En-tête */}
       <header className="sticky top-0 z-10 bg-navy px-4 pb-4 pt-5 text-white">
         <div className="mb-4 flex items-center justify-between">
-          <span className="text-xl font-bold tracking-tight">Kpata</span>
+          <div className="rounded-lg bg-white px-2 py-1">
+            <Image
+              src="/logo-horizontal.png"
+              alt="Kpata"
+              width={90}
+              height={33}
+              priority
+              className="h-6 w-auto"
+            />
+          </div>
           <div className="flex items-center gap-4">
             <button aria-label="Notifications">
               <Bell size={22} />
