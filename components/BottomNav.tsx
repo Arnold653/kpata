@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Home, Grid2X2, ShoppingCart, Heart, User } from "lucide-react";
 
 const items = [
-  { label: "Accueil", icon: Home, href: "/" },
+  { label: "Accueil", icon: Home, href: "/accueil" },
   { label: "Catégories", icon: Grid2X2, href: "/categories" },
   { label: "Panier", icon: ShoppingCart, href: "/panier" },
   { label: "Favoris", icon: Heart, href: "/favoris" },
@@ -19,8 +19,7 @@ export default function BottomNav() {
     <nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-neutral-200 bg-white">
       <ul className="mx-auto flex max-w-md items-center justify-between px-4 py-2">
         {items.map(({ label, icon: Icon, href }) => {
-          const active =
-            href === "/" ? pathname === "/" : pathname?.startsWith(href);
+          const active = pathname?.startsWith(href);
           return (
             <li key={label} className="flex flex-1 flex-col items-center">
               <Link

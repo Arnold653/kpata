@@ -23,7 +23,7 @@ export default function CommandeSuccesPage({
           Suivre ma commande
         </Link>
         <Link
-          href="/"
+          href="/accueil"
           className="rounded-full border border-neutral-200 py-3 text-sm font-medium text-neutral-700"
         >
           Retour à l&apos;accueil
