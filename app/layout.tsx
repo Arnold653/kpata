@@ -1,12 +1,15 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  themeColor: "#003B7A",
+};
 
 export const metadata: Metadata = {
   title: "Kpata — Tout ce dont vous avez besoin, au même endroit.",
   description:
     "Kpata est la destination shopping en ligne des Béninois : des milliers de produits, livrés partout au Bénin.",
   manifest: "/manifest.json",
-  themeColor: "#003B7A",
   icons: {
     icon: [
       { url: "/icon-32.png", sizes: "32x32", type: "image/png" },

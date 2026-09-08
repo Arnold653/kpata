@@ -24,8 +24,8 @@ export default function BottomNav() {
             <li key={label} className="flex flex-1 flex-col items-center">
               <Link
                 href={href}
-                className={`flex flex-col items-center gap-1 text-xs ${
-                  active ? "text-navy" : "text-neutral-400"
+                className={`flex flex-col items-center gap-1 text-xs font-medium ${
+                  active ? "text-orange" : "text-navy"
                 }`}
               >
                 <Icon size={22} strokeWidth={active ? 2.4 : 2} />
