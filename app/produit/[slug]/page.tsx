@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ChevronLeft, Heart, Star } from "lucide-react";
+import { ChevronLeft, Star } from "lucide-react";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AddToCartBox from "@/components/AddToCartBox";
+import FavoriteButton from "@/components/FavoriteButton";
 
 export default async function ProductPage({
   params,
@@ -41,9 +42,7 @@ export default async function ProductPage({
         <Link href="/categories">
           <ChevronLeft size={22} />
         </Link>
-        <button aria-label="Ajouter aux favoris">
-          <Heart size={20} />
-        </button>
+        <FavoriteButton productId={product.id} />
       </header>
 
       <div className="aspect-square w-full bg-neutral-100">

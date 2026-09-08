@@ -51,14 +51,17 @@ export default async function HomePage() {
           <span>Cotonou, Bénin</span>
         </div>
 
-        <label className="flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-neutral-500">
-          <Search size={18} />
-          <input
-            type="text"
-            placeholder="Que recherchez-vous ?"
-            className="w-full bg-transparent text-sm text-neutral-900 outline-none placeholder:text-neutral-400"
-          />
-        </label>
+        <form action="/recherche" method="GET">
+          <label className="flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-neutral-500">
+            <Search size={18} />
+            <input
+              type="text"
+              name="q"
+              placeholder="Que recherchez-vous ?"
+              className="w-full bg-transparent text-sm text-neutral-900 outline-none placeholder:text-neutral-400"
+            />
+          </label>
+        </form>
       </header>
 
       {/* Bannière principale */}

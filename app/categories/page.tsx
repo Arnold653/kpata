@@ -15,14 +15,17 @@ export default async function CategoriesPage() {
     <main className="mx-auto min-h-screen max-w-md bg-white pb-24">
       <header className="sticky top-0 z-10 bg-white px-4 pb-3 pt-5">
         <h1 className="mb-3 text-xl font-bold text-navy">Catégories</h1>
-        <label className="flex items-center gap-2 rounded-full bg-neutral-100 px-4 py-2.5 text-neutral-500">
-          <Search size={18} />
-          <input
-            type="text"
-            placeholder="Rechercher une catégorie..."
-            className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-400"
-          />
-        </label>
+        <form action="/recherche" method="GET">
+          <label className="flex items-center gap-2 rounded-full bg-neutral-100 px-4 py-2.5 text-neutral-500">
+            <Search size={18} />
+            <input
+              type="text"
+              name="q"
+              placeholder="Rechercher une catégorie..."
+              className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-400"
+            />
+          </label>
+        </form>
       </header>
 
       <div className="flex flex-col px-4">
