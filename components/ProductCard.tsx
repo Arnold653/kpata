@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Star } from "lucide-react";
+import QuickAddButton from "@/components/QuickAddButton";
 
 type Product = {
+  id?: string;
   slug: string;
   name: string;
   price: number;
@@ -11,7 +13,13 @@ type Product = {
   image_url?: string | null;
 };
 
-export default function ProductCard({ product }: { product: Product }) {
+export default function ProductCard({
+  product,
+  showQuickAdd = false,
+}: {
+  product: Product;
+  showQuickAdd?: boolean;
+}) {
   const hasDiscount =
     product.compare_at_price && product.compare_at_price > product.price;
 
@@ -30,9 +38,9 @@ export default function ProductCard({ product }: { product: Product }) {
           />
         )}
       </div>
-      <p className="line-clamp-2 text-sm text-neutral-800">{product.name}</p>
+      <p className="line-clamp-2 text-sm font-medium text-navy">{product.name}</p>
       <div className="mt-1 flex items-center gap-2">
-        <span className="text-sm font-semibold text-navy">
+        <span className="text-sm font-bold text-navy">
           {product.price.toLocaleString("fr-FR")} FCFA
         </span>
         {hasDiscount && (
@@ -41,12 +49,18 @@ export default function ProductCard({ product }: { product: Product }) {
           </span>
         )}
       </div>
-      {product.rating_count ? (
-        <div className="mt-1 flex items-center gap-1 text-xs text-neutral-500">
-          <Star size={12} className="fill-orange text-orange" />
-          {product.rating_average} ({product.rating_count})
-        </div>
-      ) : null}
+
+      <div className="mt-1.5 flex items-center justify-between">
+        {product.rating_count ? (
+          <div className="flex items-center gap-1 text-xs text-neutral-500">
+            <Star size={12} className="fill-orange text-orange" />
+            {product.rating_average} ({product.rating_count})
+          </div>
+        ) : (
+          <span />
+        )}
+        {showQuickAdd && product.id && <QuickAddButton productId={product.id} />}
+      </div>
     </Link>
   );
 }
