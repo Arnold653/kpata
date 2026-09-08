@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AddToCartBox from "@/components/AddToCartBox";
 import FavoriteButton from "@/components/FavoriteButton";
+import ProductGallery from "@/components/ProductGallery";
 
 export default async function ProductPage({
   params,
@@ -45,16 +46,7 @@ export default async function ProductPage({
         <FavoriteButton productId={product.id} />
       </header>
 
-      <div className="aspect-square w-full bg-neutral-100">
-        {images[0] && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={images[0].url}
-            alt={product.name}
-            className="h-full w-full object-cover"
-          />
-        )}
-      </div>
+      <ProductGallery images={images} alt={product.name} />
 
       <div className="space-y-4 px-4 pt-5">
         {product.brand && (
@@ -62,7 +54,7 @@ export default async function ProductPage({
             {product.brand}
           </p>
         )}
-        <h1 className="text-lg font-semibold text-neutral-900">
+        <h1 className="text-lg font-bold text-navy">
           {product.name}
         </h1>
 
@@ -73,29 +65,32 @@ export default async function ProductPage({
           </div>
         ) : null}
 
-        <div className="flex items-center gap-3">
-          <span className="text-xl font-bold text-navy">
-            {product.price.toLocaleString("fr-FR")} FCFA
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-xl font-bold text-navy">
+              {product.price.toLocaleString("fr-FR")} FCFA
+            </span>
+            {hasDiscount && (
+              <>
+                <span className="text-sm text-neutral-400 line-through">
+                  {product.compare_at_price!.toLocaleString("fr-FR")} FCFA
+                </span>
+                <span className="rounded-full bg-orange/10 px-2 py-0.5 text-xs font-semibold text-orange">
+                  -{discountPct}%
+                </span>
+              </>
+            )}
+          </div>
+          <span
+            className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+              product.stock_available > 0
+                ? "border-green-200 bg-green-50 text-green-600"
+                : "border-red-200 bg-red-50 text-red-600"
+            }`}
+          >
+            {product.stock_available > 0 ? "En stock" : "Rupture de stock"}
           </span>
-          {hasDiscount && (
-            <>
-              <span className="text-sm text-neutral-400 line-through">
-                {product.compare_at_price!.toLocaleString("fr-FR")} FCFA
-              </span>
-              <span className="rounded-full bg-orange/10 px-2 py-0.5 text-xs font-semibold text-orange">
-                -{discountPct}%
-              </span>
-            </>
-          )}
         </div>
-
-        <p
-          className={`text-sm font-medium ${
-            product.stock_available > 0 ? "text-green-600" : "text-red-600"
-          }`}
-        >
-          {product.stock_available > 0 ? "En stock" : "Rupture de stock"}
-        </p>
 
         <AddToCartBox
           productId={product.id}

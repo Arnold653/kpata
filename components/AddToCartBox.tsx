@@ -11,6 +11,28 @@ type Variant = {
   stock: number;
 };
 
+const COLOR_HEX: Record<string, string> = {
+  noir: "#111827",
+  blanc: "#FFFFFF",
+  bleu: "#2563EB",
+  violet: "#7C3AED",
+  rouge: "#DC2626",
+  vert: "#16A34A",
+  gris: "#9CA3AF",
+  jaune: "#EAB308",
+  orange: "#F97316",
+  rose: "#EC4899",
+  or: "#D4AF37",
+  doré: "#D4AF37",
+  argent: "#C0C0C0",
+  marron: "#78350F",
+  beige: "#D6C7A1",
+};
+
+function colorToHex(name: string) {
+  return COLOR_HEX[name.trim().toLowerCase()] ?? "#9CA3AF";
+}
+
 export default function AddToCartBox({
   productId,
   variants,
@@ -28,8 +50,8 @@ export default function AddToCartBox({
   const router = useRouter();
   const supabase = createClient();
 
-  const colors = [...new Set(variants.filter((v) => v.color).map((v) => v.color))];
-  const sizes = [...new Set(variants.filter((v) => v.size).map((v) => v.size))];
+  const colorVariants = variants.filter((v) => v.color);
+  const sizeVariants = variants.filter((v) => v.size);
 
   async function addToCart(buyNow: boolean) {
     setStatus("loading");
@@ -63,36 +85,45 @@ export default function AddToCartBox({
 
   return (
     <div className="space-y-4">
-      {colors.length > 0 && (
-        <div>
-          <p className="mb-2 text-sm font-medium text-neutral-700">Couleur</p>
-          <div className="flex gap-2">
-            {variants
-              .filter((v) => v.color)
-              .map((v) => (
+      {colorVariants.length > 0 && (
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="mb-2 text-sm font-semibold text-navy">Couleur</p>
+            <div className="flex gap-3">
+              {colorVariants.map((v) => (
                 <button
                   key={v.id}
                   onClick={() => setSelectedVariant(v.id)}
-                  className={`rounded-full border px-4 py-1.5 text-sm ${
-                    selectedVariant === v.id
-                      ? "border-navy bg-navy text-white"
-                      : "border-neutral-200 text-neutral-700"
+                  aria-label={v.color!}
+                  className={`h-8 w-8 rounded-full border-2 ${
+                    selectedVariant === v.id ? "border-navy" : "border-transparent"
                   }`}
                 >
-                  {v.color}
+                  <span
+                    className="block h-full w-full rounded-full border border-neutral-200"
+                    style={{ backgroundColor: colorToHex(v.color!) }}
+                  />
                 </button>
               ))}
+            </div>
           </div>
+
+          {sizeVariants.length === 0 && (
+            <div className="flex items-center gap-3 rounded-full border border-neutral-200 px-3 py-1.5">
+              <button onClick={() => setQuantity((q) => Math.max(1, q - 1))}>−</button>
+              <span className="w-4 text-center text-sm">{quantity}</span>
+              <button onClick={() => setQuantity((q) => q + 1)}>+</button>
+            </div>
+          )}
         </div>
       )}
 
-      {sizes.length > 0 && (
-        <div>
-          <p className="mb-2 text-sm font-medium text-neutral-700">Taille</p>
-          <div className="flex flex-wrap gap-2">
-            {variants
-              .filter((v) => v.size)
-              .map((v) => (
+      {sizeVariants.length > 0 && (
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="mb-2 text-sm font-semibold text-navy">Taille</p>
+            <div className="flex flex-wrap gap-2">
+              {sizeVariants.map((v) => (
                 <button
                   key={v.id}
                   onClick={() => setSelectedVariant(v.id)}
@@ -105,20 +136,23 @@ export default function AddToCartBox({
                   {v.size}
                 </button>
               ))}
+            </div>
+          </div>
+          <div className="flex items-center gap-3 rounded-full border border-neutral-200 px-3 py-1.5">
+            <button onClick={() => setQuantity((q) => Math.max(1, q - 1))}>−</button>
+            <span className="w-4 text-center text-sm">{quantity}</span>
+            <button onClick={() => setQuantity((q) => q + 1)}>+</button>
           </div>
         </div>
       )}
 
-      <div className="flex items-center gap-3">
-        <p className="text-sm font-medium text-neutral-700">Quantité</p>
-        <div className="flex items-center gap-3 rounded-full border border-neutral-200 px-3 py-1">
-          <button onClick={() => setQuantity((q) => Math.max(1, q - 1))}>
-            −
-          </button>
+      {colorVariants.length === 0 && sizeVariants.length === 0 && (
+        <div className="flex items-center gap-3 rounded-full border border-neutral-200 px-3 py-1.5 w-fit">
+          <button onClick={() => setQuantity((q) => Math.max(1, q - 1))}>−</button>
           <span className="w-4 text-center text-sm">{quantity}</span>
           <button onClick={() => setQuantity((q) => q + 1)}>+</button>
         </div>
-      </div>
+      )}
 
       {status === "error" && (
         <p className="text-sm text-red-600">
