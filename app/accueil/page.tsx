@@ -1,36 +1,32 @@
 import Link from "next/link";
 import Image from "next/image";
-import {
-  Search, ShoppingCart, Headphones, Shirt, Sofa, ShoppingBag,
-  Dumbbell, Footprints, MoreHorizontal, Smartphone,
-} from "lucide-react";
+import { Search, ShoppingCart, MoreHorizontal, Smartphone } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import ProductCard from "@/components/ProductCard";
 import { createClient } from "@/lib/supabase/server";
 
-const CATEGORY_STYLES: Record<
-  string,
-  { icon: any; bg: string; iconColor: string; label: string }
-> = {
-  "telephones-electronique": { icon: Headphones, bg: "bg-blue-50", iconColor: "text-navy", label: "Électronique" },
-  "mode-vetements": { icon: Shirt, bg: "bg-blue-50", iconColor: "text-blue-500", label: "Mode" },
-  "maison": { icon: Sofa, bg: "bg-indigo-50", iconColor: "text-navy", label: "Maison" },
-  "beaute-soins": { icon: ShoppingBag, bg: "bg-pink-50", iconColor: "text-pink-500", label: "Beauté" },
-  "sacs-accessoires": { icon: ShoppingBag, bg: "bg-orange-50", iconColor: "text-orange", label: "Accessoires" },
-  "sport-loisirs": { icon: Dumbbell, bg: "bg-orange-50", iconColor: "text-orange", label: "Sport" },
-  "chaussures": { icon: Footprints, bg: "bg-neutral-100", iconColor: "text-navy", label: "Chaussures" },
-};
+const HOME_CATEGORIES = [
+  { slug: "telephones-electronique", label: "Électronique" },
+  { slug: "mode-vetements", label: "Mode" },
+  { slug: "meubles-decoration", label: "Maison" },
+  { slug: "beaute-soins", label: "Beauté" },
+  { slug: "sport-loisirs", label: "Sport" },
+  { slug: "produits-du-quotidien", label: "Quotidien" },
+  { slug: "jouets", label: "Jouets" },
+];
 
 export default async function AccueilPage() {
   const supabase = createClient();
 
-  const { data: categories } = await supabase
+  const { data: categoriesData } = await supabase
     .from("categories")
     .select("name, slug")
-    .eq("is_active", true)
-    .in("slug", Object.keys(CATEGORY_STYLES))
-    .order("display_order")
-    .limit(7);
+    .in("slug", HOME_CATEGORIES.map((c) => c.slug));
+
+  const categories = HOME_CATEGORIES.map((hc) => ({
+    ...hc,
+    exists: categoriesData?.some((c) => c.slug === hc.slug),
+  }));
 
   const { data: products } = await supabase
     .from("products")
@@ -124,29 +120,26 @@ export default async function AccueilPage() {
       {/* Catégories */}
       <section className="px-4 pt-6">
         <div className="grid grid-cols-4 gap-y-4">
-          {(categories || []).map((cat) => {
-            const style = CATEGORY_STYLES[cat.slug];
-            if (!style) return null;
-            const Icon = style.icon;
-            return (
-              <Link
-                key={cat.slug}
-                href={`/categories/${cat.slug}`}
-                className="flex flex-col items-center gap-2"
-              >
-                <span
-                  className={`flex h-14 w-14 items-center justify-center rounded-full ${style.bg}`}
-                >
-                  <Icon size={24} className={style.iconColor} />
-                </span>
-                <span className="text-xs font-medium text-navy">
-                  {style.label}
-                </span>
-              </Link>
-            );
-          })}
+          {categories.map((cat) => (
+            <Link
+              key={cat.slug}
+              href={`/categories/${cat.slug}`}
+              className="flex flex-col items-center gap-2"
+            >
+              <span className="flex h-16 w-16 items-center justify-center rounded-full border border-neutral-100 bg-white shadow-sm">
+                <Image
+                  src={`/categories/${cat.slug}.png`}
+                  alt={cat.label}
+                  width={56}
+                  height={56}
+                  className="h-12 w-12 object-contain"
+                />
+              </span>
+              <span className="text-xs font-medium text-navy">{cat.label}</span>
+            </Link>
+          ))}
           <Link href="/categories" className="flex flex-col items-center gap-2">
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-100">
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-100">
               <MoreHorizontal size={24} className="text-navy" />
             </span>
             <span className="text-xs font-medium text-navy">Plus</span>

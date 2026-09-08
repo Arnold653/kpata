@@ -1,7 +1,13 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import BottomNav from "@/components/BottomNav";
+
+const CATEGORY_IMAGES = new Set([
+  "telephones-electronique", "mode-vetements", "meubles-decoration",
+  "beaute-soins", "sport-loisirs", "produits-du-quotidien", "jouets",
+]);
 
 export default async function CategoriesPage() {
   const supabase = createClient();
@@ -36,7 +42,17 @@ export default async function CategoriesPage() {
             className="flex items-center gap-4 border-b border-neutral-100 py-4"
           >
             <span className="flex h-11 w-11 items-center justify-center rounded-full bg-neutral-50 text-xl">
-              {cat.icon}
+              {CATEGORY_IMAGES.has(cat.slug) ? (
+                <Image
+                  src={`/categories/${cat.slug}.png`}
+                  alt={cat.name}
+                  width={40}
+                  height={40}
+                  className="h-9 w-9 object-contain"
+                />
+              ) : (
+                cat.icon
+              )}
             </span>
             <span className="text-sm font-medium text-neutral-800">
               {cat.name}
