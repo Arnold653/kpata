@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Grid2X2, ShoppingCart, Heart, User } from "lucide-react";
+import { Home, Grid2X2, ShoppingCart, User } from "lucide-react";
 
 const items = [
   { label: "Accueil", icon: Home, href: "/accueil" },
   { label: "Catégories", icon: Grid2X2, href: "/categories" },
   { label: "Panier", icon: ShoppingCart, href: "/panier" },
-  { label: "Favoris", icon: Heart, href: "/favoris" },
   { label: "Compte", icon: User, href: "/compte" },
 ];
 
