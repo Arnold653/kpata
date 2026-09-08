@@ -41,4 +41,4 @@ create policy "Admin voit tous les profils" on profiles
 -- remplacez l'email ci-dessous et exécutez cette ligne :
 -- ============================================================
 -- update profiles set role = 'admin'
--- where id = (select id from auth.users where email = 'votre-email@exemple.com');
+-- where id = (select id from auth.users where email = 'arnoldzanou65@gmail.com);
