@@ -5,7 +5,7 @@ export default async function NouveauProduitPage() {
   const supabase = createClient();
   const { data: categories } = await supabase
     .from("categories")
-    .select("id, name")
+    .select("id, name, parent_id")
     .order("display_order");
 
   return (

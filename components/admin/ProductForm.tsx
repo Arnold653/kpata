@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-type Category = { id: string; name: string };
+type Category = { id: string; name: string; parent_id: string | null };
 
 type ProductData = {
   id?: string;
@@ -119,6 +119,18 @@ export default function ProductForm({
     router.refresh();
   }
 
+  const orderedCategories = (() => {
+    const parents = categories.filter((c) => !c.parent_id);
+    const result: { id: string; label: string }[] = [];
+    for (const parent of parents) {
+      result.push({ id: parent.id, label: parent.name });
+      categories
+        .filter((c) => c.parent_id === parent.id)
+        .forEach((child) => result.push({ id: child.id, label: `— ${child.name}` }));
+    }
+    return result;
+  })();
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4 rounded-card border border-neutral-200 bg-white p-5">
       <div>
@@ -139,9 +151,9 @@ export default function ProductForm({
             onChange={(e) => setForm({ ...form, category_id: e.target.value })}
             className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-navy"
           >
-            {categories.map((c) => (
+            {orderedCategories.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name}
+                {c.label}
               </option>
             ))}
           </select>

@@ -10,36 +10,46 @@ export default async function CategoryProductsPage({
   searchParams,
 }: {
   params: { slug: string };
-  searchParams: { marque?: string };
+  searchParams: { sous?: string };
 }) {
   const supabase = createClient();
 
   const { data: category } = await supabase
     .from("categories")
-    .select("id, name, slug")
+    .select("id, name, slug, parent_id")
     .eq("slug", params.slug)
     .single();
 
   if (!category) notFound();
 
-  const { data: allProducts } = await supabase
+  // Sous-catégories directes de cette catégorie (vide si c'en est déjà une)
+  const { data: subcategories } = await supabase
+    .from("categories")
+    .select("id, name, slug")
+    .eq("parent_id", category.id)
+    .eq("is_active", true)
+    .order("display_order");
+
+  const activeSubSlug = searchParams.sous;
+  const activeSub = subcategories?.find((s) => s.slug === activeSubSlug);
+
+  // IDs de catégories à inclure dans la requête produits :
+  // - la catégorie elle-même
+  // - + toutes ses sous-catégories (si aucun filtre actif)
+  // - ou uniquement la sous-catégorie sélectionnée (si filtre actif)
+  const categoryIds = activeSub
+    ? [activeSub.id]
+    : [category.id, ...(subcategories || []).map((s) => s.id)];
+
+  const { data: products } = await supabase
     .from("products")
     .select(
-      "id, slug, name, price, compare_at_price, rating_average, rating_count, brand, product_images(url, is_primary)"
+      "id, slug, name, price, compare_at_price, rating_average, rating_count, product_images(url, is_primary)"
     )
-    .eq("category_id", category.id)
+    .in("category_id", categoryIds)
     .eq("is_published", true);
 
-  const brands = Array.from(
-    new Set((allProducts || []).map((p) => p.brand).filter(Boolean))
-  ) as string[];
-
-  const activeBrand = searchParams.marque;
-  const filtered = activeBrand
-    ? (allProducts || []).filter((p) => p.brand === activeBrand)
-    : allProducts || [];
-
-  const formatted = filtered.map((p) => ({
+  const formatted = (products || []).map((p) => ({
     ...p,
     image_url:
       p.product_images?.find((i) => i.is_primary)?.url ||
@@ -60,25 +70,25 @@ export default async function CategoryProductsPage({
         </Link>
       </header>
 
-      {brands.length > 0 && (
+      {subcategories && subcategories.length > 0 && (
         <div className="flex gap-2 overflow-x-auto px-4 pb-3 [scrollbar-width:none]">
           <Link
             href={`/categories/${params.slug}`}
             className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium ${
-              !activeBrand ? "bg-orange text-white" : "bg-blue-50 text-navy"
+              !activeSubSlug ? "bg-orange text-white" : "bg-blue-50 text-navy"
             }`}
           >
             Tous
           </Link>
-          {brands.map((brand) => (
+          {subcategories.map((sub) => (
             <Link
-              key={brand}
-              href={`/categories/${params.slug}?marque=${encodeURIComponent(brand)}`}
+              key={sub.slug}
+              href={`/categories/${params.slug}?sous=${sub.slug}`}
               className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium ${
-                activeBrand === brand ? "bg-orange text-white" : "bg-blue-50 text-navy"
+                activeSubSlug === sub.slug ? "bg-orange text-white" : "bg-blue-50 text-navy"
               }`}
             >
-              {brand}
+              {sub.name}
             </Link>
           ))}
         </div>

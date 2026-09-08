@@ -36,6 +36,7 @@ export default async function CategoriesPage() {
     .from("categories")
     .select("name, slug, icon")
     .eq("is_active", true)
+    .is("parent_id", null)
     .order("display_order");
 
   return (
