@@ -1,23 +1,18 @@
 import Link from "next/link";
 import {
-  User, Package, Heart, MapPin, CreditCard, Ticket,
-  Bell, MessageCircle, Settings, Lock,
+  ClipboardList, MapPin, CreditCard, Heart, Headphones, Settings, ShieldCheck,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import SignOutButton from "@/components/SignOutButton";
 import BottomNav from "@/components/BottomNav";
 
 const menuItems = [
-  { label: "Informations personnelles", icon: User, href: "/compte/profil" },
-  { label: "Mes commandes", icon: Package, href: "/compte/commandes" },
-  { label: "Mes favoris", icon: Heart, href: "/favoris" },
+  { label: "Mes commandes", icon: ClipboardList, href: "/compte/commandes" },
   { label: "Mes adresses", icon: MapPin, href: "/compte/adresses" },
   { label: "Mes moyens de paiement", icon: CreditCard, href: "/compte/paiement" },
-  { label: "Mes coupons", icon: Ticket, href: "/compte/coupons" },
-  { label: "Notifications", icon: Bell, href: "/compte/notifications" },
-  { label: "Service client", icon: MessageCircle, href: "/aide" },
+  { label: "Mes favoris", icon: Heart, href: "/favoris" },
+  { label: "Service client", icon: Headphones, href: "/aide" },
   { label: "Paramètres", icon: Settings, href: "/compte/parametres" },
-  { label: "Sécurité", icon: Lock, href: "/compte/securite" },
 ];
 
 export default async function ComptePage() {
@@ -58,40 +53,45 @@ export default async function ComptePage() {
 
   return (
     <main className="mx-auto min-h-screen max-w-md bg-white pb-24">
-      <header className="bg-navy px-4 pb-6 pt-8 text-white">
-        <div className="flex items-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/15 text-lg font-semibold">
+      <div className="px-4 pb-2 pt-6">
+        <Link href="/compte/profil" className="flex items-center gap-3">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-500 text-lg font-semibold text-white">
             {initials}
           </div>
           <div>
-            <p className="font-semibold">{profile?.full_name || "Mon compte"}</p>
-            <p className="text-sm text-white/70">{user.email}</p>
+            <p className="font-bold text-navy">{profile?.full_name || "Mon compte"}</p>
+            <p className="text-sm text-blue-500">{user.email}</p>
           </div>
-        </div>
-      </header>
+        </Link>
+      </div>
 
       <nav className="px-4 pt-4">
         {menuItems.map(({ label, icon: Icon, href }) => (
           <Link
             key={label}
             href={href}
-            className="flex items-center gap-3 border-b border-neutral-100 py-3.5 text-sm text-neutral-800"
+            className="flex items-center gap-3 rounded-card border border-neutral-100 px-3 py-3.5 mb-2 text-sm font-medium text-navy"
           >
-            <Icon size={18} className="text-navy" />
-            {label}
+            <Icon size={19} className="text-navy" />
+            <span className="flex-1">{label}</span>
+            <span className="text-neutral-300">›</span>
           </Link>
         ))}
         {profile?.role === "admin" && (
           <Link
             href="/admin"
-            className="flex items-center gap-3 border-b border-neutral-100 py-3.5 text-sm font-medium text-orange"
+            className="mb-2 flex items-center gap-3 rounded-card border border-orange/30 bg-orange/5 px-3 py-3.5 text-sm font-medium text-orange"
           >
-            <Settings size={18} className="text-orange" />
-            Administration
+            <ShieldCheck size={19} className="text-orange" />
+            <span className="flex-1">Administration</span>
+            <span className="text-orange/50">›</span>
           </Link>
         )}
-        <SignOutButton />
       </nav>
+
+      <div className="px-4 pt-2">
+        <SignOutButton />
+      </div>
 
       <BottomNav />
     </main>
