@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, MapPin, Home, Store, Smartphone, CreditCard, Truck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import AddressForm from "@/components/AddressForm";
 
@@ -33,7 +33,7 @@ type CartItem = {
   variant: { color: string | null; size: string | null } | null;
 };
 
-const steps = ["Adresse", "Livraison", "Paiement", "Confirmation"];
+const steps = ["Adresse", "Paiement", "Confirmation"];
 
 export default function CheckoutWizard({
   addresses,
@@ -50,10 +50,9 @@ export default function CheckoutWizard({
     addresses[0]?.id ?? null
   );
   const [showAddressForm, setShowAddressForm] = useState(addresses.length === 0);
-  const [deliveryMethod, setDeliveryMethod] = useState<
-    "domicile" | "point_relais" | "retrait_magasin"
-  >("domicile");
-  const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
+  const [deliveryMethod, setDeliveryMethod] = useState<"domicile" | "retrait_magasin">(
+    "domicile"
+  );
   const [paymentMethod, setPaymentMethod] = useState<
     "mobile_money" | "carte_bancaire" | "paiement_livraison"
   >("mobile_money");
@@ -62,13 +61,17 @@ export default function CheckoutWizard({
   const router = useRouter();
   const supabase = createClient();
 
+  const selectedAddress = addressList.find((a) => a.id === selectedAddressId);
+  const matchedZone =
+    zones.find(
+      (z) => z.city.toLowerCase() === selectedAddress?.city.toLowerCase()
+    ) ?? zones[0];
+
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
     0
   );
-  const selectedZone = zones.find((z) => z.id === selectedZoneId);
-  const deliveryFee =
-    deliveryMethod === "retrait_magasin" ? 0 : selectedZone?.base_fee ?? 0;
+  const deliveryFee = deliveryMethod === "retrait_magasin" ? 0 : matchedZone?.base_fee ?? 0;
   const total = subtotal + deliveryFee;
 
   async function handleConfirm() {
@@ -91,7 +94,7 @@ export default function CheckoutWizard({
         user_id: user.id,
         address_id: selectedAddressId,
         delivery_method: deliveryMethod,
-        delivery_zone_id: selectedZoneId,
+        delivery_zone_id: deliveryMethod === "domicile" ? matchedZone?.id : null,
         delivery_fee: deliveryFee,
         payment_method: paymentMethod,
         subtotal,
@@ -117,10 +120,7 @@ export default function CheckoutWizard({
     }));
 
     await supabase.from("order_items").insert(orderItems);
-    await supabase
-      .from("cart_items")
-      .delete()
-      .eq("user_id", user.id);
+    await supabase.from("cart_items").delete().eq("user_id", user.id);
 
     router.push(`/commande/succes/${order.order_number}`);
   }
@@ -130,12 +130,14 @@ export default function CheckoutWizard({
       <header className="sticky top-0 z-10 flex items-center gap-3 bg-white px-4 py-4">
         {step > 0 ? (
           <button onClick={() => setStep(step - 1)}>
-            <ChevronLeft size={22} />
+            <ChevronLeft size={22} className="text-navy" />
           </button>
         ) : (
           <div className="w-[22px]" />
         )}
-        <h1 className="text-lg font-semibold text-navy">Commande</h1>
+        <h1 className="text-lg font-bold text-navy">
+          {step === 0 ? "Adresse" : "Paiement"}
+        </h1>
       </header>
 
       {/* Indicateur d'étapes */}
@@ -143,19 +145,19 @@ export default function CheckoutWizard({
         {steps.map((label, i) => (
           <div key={label} className="flex flex-1 items-center">
             <div
-              className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold ${
-                i <= step ? "bg-navy text-white" : "bg-neutral-100 text-neutral-400"
+              className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-semibold ${
+                i <= step ? "bg-navy text-white" : "bg-neutral-200 text-neutral-500"
               }`}
             >
               {i + 1}
             </div>
             <span
-              className={`ml-1.5 ${i <= step ? "text-navy" : "text-neutral-400"}`}
+              className={`ml-1.5 font-medium ${i <= step ? "text-navy" : "text-neutral-400"}`}
             >
               {label}
             </span>
             {i < steps.length - 1 && (
-              <div className="mx-1 h-px flex-1 bg-neutral-200" />
+              <div className={`mx-1 h-px flex-1 ${i < step ? "bg-navy" : "bg-neutral-200"}`} />
             )}
           </div>
         ))}
@@ -203,9 +205,7 @@ export default function CheckoutWizard({
                   setShowAddressForm(false);
                 }}
                 onCancel={
-                  addressList.length > 0
-                    ? () => setShowAddressForm(false)
-                    : undefined
+                  addressList.length > 0 ? () => setShowAddressForm(false) : undefined
                 }
               />
             ) : (
@@ -227,140 +227,104 @@ export default function CheckoutWizard({
           </div>
         )}
 
-        {/* ÉTAPE 2 — Livraison */}
+        {/* ÉTAPE 2 — Paiement (livraison + paiement combinés) */}
         {step === 1 && (
-          <div className="space-y-3">
-            {[
-              { id: "domicile", label: "Livraison à domicile" },
-              { id: "point_relais", label: "Point relais" },
-              { id: "retrait_magasin", label: "Retrait en magasin" },
-            ].map((option) => (
-              <label
-                key={option.id}
-                className={`flex cursor-pointer items-center gap-3 rounded-card border p-3 text-sm ${
-                  deliveryMethod === option.id
-                    ? "border-navy bg-navy/5"
-                    : "border-neutral-200"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="delivery"
-                  checked={deliveryMethod === option.id}
-                  onChange={() => setDeliveryMethod(option.id as any)}
-                />
-                {option.label}
-              </label>
-            ))}
-
-            {deliveryMethod !== "retrait_magasin" && (
-              <div className="pt-2">
-                <p className="mb-2 text-sm font-medium text-neutral-700">
-                  Votre ville
-                </p>
-                <div className="space-y-2">
-                  {zones.map((zone) => (
-                    <label
-                      key={zone.id}
-                      className={`flex cursor-pointer items-center justify-between rounded-card border p-3 text-sm ${
-                        selectedZoneId === zone.id
-                          ? "border-navy bg-navy/5"
-                          : "border-neutral-200"
-                      }`}
-                    >
-                      <span className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="zone"
-                          checked={selectedZoneId === zone.id}
-                          onChange={() => setSelectedZoneId(zone.id)}
-                        />
-                        {zone.city}
-                      </span>
-                      <span className="text-xs text-neutral-500">
-                        {zone.base_fee.toLocaleString("fr-FR")} FCFA ·{" "}
-                        {zone.estimated_days_min}-{zone.estimated_days_max}j
-                      </span>
-                    </label>
-                  ))}
+          <div className="space-y-5">
+            <div>
+              <h2 className="mb-2 text-sm font-bold text-navy">Adresse de livraison</h2>
+              <div className="flex items-center justify-between rounded-card border border-neutral-200 p-3">
+                <div className="flex items-center gap-2 text-sm text-neutral-700">
+                  <MapPin size={16} className="text-navy" />
+                  {selectedAddress?.city}, Bénin
                 </div>
+                <button
+                  onClick={() => setStep(0)}
+                  className="text-sm font-medium text-navy underline"
+                >
+                  Modifier
+                </button>
               </div>
-            )}
+            </div>
 
-            <button
-              disabled={deliveryMethod !== "retrait_magasin" && !selectedZoneId}
-              onClick={() => setStep(2)}
-              className="mt-4 w-full rounded-full bg-orange py-3 text-sm font-semibold text-white disabled:opacity-40"
-            >
-              Continuer
-            </button>
-          </div>
-        )}
+            <div>
+              <h2 className="mb-2 text-sm font-bold text-navy">Mode de livraison</h2>
+              <div className="space-y-2">
+                <label
+                  className={`flex cursor-pointer items-center justify-between rounded-card border p-3 ${
+                    deliveryMethod === "domicile" ? "border-navy bg-navy/5" : "border-neutral-200"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Home size={18} className="text-navy" />
+                    <div className="text-sm">
+                      <p className="font-medium text-neutral-900">Livraison à domicile</p>
+                      <p className="text-xs text-neutral-500">
+                        {matchedZone
+                          ? `${matchedZone.estimated_days_min}-${matchedZone.estimated_days_max} jours • ${matchedZone.base_fee.toLocaleString("fr-FR")} FCFA`
+                          : "Tarif calculé selon votre ville"}
+                      </p>
+                    </div>
+                  </div>
+                  <input
+                    type="radio"
+                    name="delivery"
+                    checked={deliveryMethod === "domicile"}
+                    onChange={() => setDeliveryMethod("domicile")}
+                  />
+                </label>
 
-        {/* ÉTAPE 3 — Paiement */}
-        {step === 2 && (
-          <div className="space-y-3">
-            {[
-              { id: "mobile_money", label: "Mobile Money (MTN, Moov...)" },
-              { id: "carte_bancaire", label: "Carte bancaire" },
-              { id: "paiement_livraison", label: "Paiement à la livraison" },
-            ].map((option) => (
-              <label
-                key={option.id}
-                className={`flex cursor-pointer items-center gap-3 rounded-card border p-3 text-sm ${
-                  paymentMethod === option.id
-                    ? "border-navy bg-navy/5"
-                    : "border-neutral-200"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="payment"
-                  checked={paymentMethod === option.id}
-                  onChange={() => setPaymentMethod(option.id as any)}
-                />
-                {option.label}
-              </label>
-            ))}
-
-            <button
-              onClick={() => setStep(3)}
-              className="mt-4 w-full rounded-full bg-orange py-3 text-sm font-semibold text-white"
-            >
-              Continuer
-            </button>
-          </div>
-        )}
-
-        {/* ÉTAPE 4 — Confirmation */}
-        {step === 3 && (
-          <div className="space-y-4">
-            <div className="rounded-card border border-neutral-100 p-4 text-sm">
-              <h2 className="mb-2 font-semibold text-neutral-900">Résumé</h2>
-              {cartItems.map((item) => (
-                <div key={item.id} className="flex justify-between py-1 text-neutral-600">
-                  <span>
-                    {item.quantity} × {item.product.name}
-                  </span>
-                  <span>
-                    {(item.product.price * item.quantity).toLocaleString("fr-FR")} FCFA
-                  </span>
-                </div>
-              ))}
-              <div className="mt-2 space-y-1 border-t border-neutral-100 pt-2">
-                <div className="flex justify-between text-neutral-600">
-                  <span>Sous-total</span>
-                  <span>{subtotal.toLocaleString("fr-FR")} FCFA</span>
-                </div>
-                <div className="flex justify-between text-neutral-600">
-                  <span>Livraison</span>
-                  <span>{deliveryFee.toLocaleString("fr-FR")} FCFA</span>
-                </div>
-                <div className="flex justify-between font-semibold text-navy">
-                  <span>Total</span>
-                  <span>{total.toLocaleString("fr-FR")} FCFA</span>
-                </div>
+                <label
+                  className={`flex cursor-pointer items-center justify-between rounded-card border p-3 ${
+                    deliveryMethod === "retrait_magasin" ? "border-navy bg-navy/5" : "border-neutral-200"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Store size={18} className="text-navy" />
+                    <div className="text-sm">
+                      <p className="font-medium text-neutral-900">Retrait en magasin</p>
+                      <p className="text-xs text-neutral-500">Gratuit</p>
+                    </div>
+                  </div>
+                  <input
+                    type="radio"
+                    name="delivery"
+                    checked={deliveryMethod === "retrait_magasin"}
+                    onChange={() => setDeliveryMethod("retrait_magasin")}
+                  />
+                </label>
               </div>
+            </div>
+
+            <div>
+              <h2 className="mb-2 text-sm font-bold text-navy">Mode de paiement</h2>
+              <div className="divide-y divide-neutral-100 rounded-card border border-neutral-200">
+                {[
+                  { id: "mobile_money", label: "Mobile Money (MTN, Moov...)", icon: Smartphone },
+                  { id: "carte_bancaire", label: "Carte bancaire", icon: CreditCard },
+                  { id: "paiement_livraison", label: "Paiement à la livraison", icon: Truck },
+                ].map((option) => (
+                  <label
+                    key={option.id}
+                    className="flex cursor-pointer items-center gap-3 p-3 text-sm"
+                  >
+                    <input
+                      type="radio"
+                      name="payment"
+                      checked={paymentMethod === option.id}
+                      onChange={() => setPaymentMethod(option.id as any)}
+                    />
+                    <option.icon size={18} className="text-navy" />
+                    {option.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between border-t border-neutral-100 pt-3 text-sm">
+              <span className="text-neutral-500">Total à payer</span>
+              <span className="text-base font-bold text-navy">
+                {total.toLocaleString("fr-FR")} FCFA
+              </span>
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
@@ -368,9 +332,9 @@ export default function CheckoutWizard({
             <button
               onClick={handleConfirm}
               disabled={submitting}
-              className="w-full rounded-full bg-orange py-3 text-sm font-semibold text-white disabled:opacity-60"
+              className="w-full rounded-full bg-orange py-3.5 text-sm font-semibold text-white disabled:opacity-60"
             >
-              {submitting ? "Confirmation en cours..." : "Confirmer ma commande"}
+              {submitting ? "Validation en cours..." : "Valider la commande"}
             </button>
           </div>
         )}
