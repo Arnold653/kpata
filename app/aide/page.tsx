@@ -25,13 +25,13 @@ export default function AidePage() {
         </a>
 
         <a
-          href="tel:+22901000000"
+          href="tel:+2290197000000"
           className="flex items-center gap-3 rounded-card border border-neutral-100 p-4"
         >
           <Phone size={20} className="text-navy" />
           <div>
             <p className="text-sm font-medium text-neutral-900">Appel téléphonique</p>
-            <p className="text-xs text-neutral-500">+229 01 00 00 00</p>
+            <p className="text-xs text-neutral-500">+229 01 97 00 00 00</p>
           </div>
         </a>
 
