@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 type CartItem = {
@@ -82,9 +83,12 @@ export default function CartList() {
 
   return (
     <div className="flex flex-col">
-      <div className="flex flex-col gap-4 px-4 pt-4">
+      <div className="flex flex-col gap-3 px-4 pt-2">
         {items.map((item) => (
-          <div key={item.id} className="flex gap-3 border-b border-neutral-100 pb-4">
+          <div
+            key={item.id}
+            className="flex gap-3 rounded-card border border-neutral-100 p-3"
+          >
             <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
               {item.image_url && (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -93,27 +97,38 @@ export default function CartList() {
             </div>
             <div className="flex flex-1 flex-col justify-between">
               <div>
-                <p className="text-sm text-neutral-800">{item.product.name}</p>
+                <p className="text-sm font-semibold text-navy">{item.product.name}</p>
                 {item.variant && (
                   <p className="text-xs text-neutral-400">
                     {[item.variant.color, item.variant.size].filter(Boolean).join(" · ")}
                   </p>
                 )}
-                <p className="mt-1 text-sm font-semibold text-navy">
+                <p className="mt-1 text-sm font-bold text-navy">
                   {item.product.price.toLocaleString("fr-FR")} FCFA
                 </p>
               </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 rounded-full border border-neutral-200 px-3 py-1">
-                  <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>−</button>
-                  <span className="w-4 text-center text-sm">{item.quantity}</span>
-                  <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
+              <div className="flex items-center justify-between pt-2">
+                <div className="flex divide-x divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200 text-navy">
+                  <button
+                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                    className="px-3 py-1.5 text-sm"
+                  >
+                    −
+                  </button>
+                  <span className="px-3 py-1.5 text-sm font-medium">{item.quantity}</span>
+                  <button
+                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                    className="px-3 py-1.5 text-sm"
+                  >
+                    +
+                  </button>
                 </div>
                 <button
                   onClick={() => removeItem(item.id)}
-                  className="text-xs text-red-500"
+                  aria-label="Supprimer"
+                  className="text-navy"
                 >
-                  Supprimer
+                  <Trash2 size={20} />
                 </button>
               </div>
             </div>
@@ -121,16 +136,16 @@ export default function CartList() {
         ))}
       </div>
 
-      <div className="mt-2 space-y-3 px-4">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-neutral-500">Sous-total</span>
-          <span className="font-semibold text-neutral-900">
+      <div className="mt-4 space-y-3 px-4">
+        <div className="flex items-center justify-between">
+          <span className="font-semibold text-navy">Sous-total</span>
+          <span className="text-lg font-bold text-navy">
             {subtotal.toLocaleString("fr-FR")} FCFA
           </span>
         </div>
         <button
           onClick={() => router.push("/commande")}
-          className="w-full rounded-full bg-orange py-3 text-sm font-semibold text-white"
+          className="w-full rounded-full bg-orange py-3.5 text-sm font-semibold text-white"
         >
           Passer la commande
         </button>
